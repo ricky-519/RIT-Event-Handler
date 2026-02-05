@@ -350,8 +350,9 @@ const App = () => {
         if (anyApproved) {
             setScannedODRequest(anyApproved);
             setIsVerifyEntryModalOpen(true);
+            showNotification("Verified");
         } else {
-             showNotification("Simulation: No pending approved ODs in system.");
+             showNotification("Error in scanning not a qr code");
         }
         return;
     }
@@ -388,12 +389,13 @@ const App = () => {
             }
             setScannedODRequest(foundOD);
             setIsVerifyEntryModalOpen(true);
+            showNotification("Verified");
         } else {
-            showNotification("Invalid QR: Could not verify OD details.");
+            showNotification("Error in scanning not a qr code");
         }
     } catch (e) {
         console.error("Scan Error", e);
-        showNotification("Invalid QR Code format.");
+        showNotification("Error in scanning not a qr code");
     }
   };
 
