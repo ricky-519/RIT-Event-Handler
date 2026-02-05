@@ -1,0 +1,7 @@
+{
+  "name": "RIT EventHandler",
+  "description": "RIT EventHandler - Manage internal and external event announcements, registrations, and 3-step OD verification.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
