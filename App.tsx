@@ -732,20 +732,20 @@ const App = () => {
       const isLiked = likedEvents.has(event.id);
       
       return (
-        <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+        <div key={event.id} className={`rounded-2xl shadow-sm border overflow-hidden flex flex-col h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
             <div className="p-3 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-indigo-100 p-0.5">
                    <img src={`https://ui-avatars.com/api/?name=${event.organizer}&background=random`} className="w-full h-full rounded-full object-cover" alt="avatar" />
                 </div>
                 <div>
-                   <p className="text-sm font-semibold text-gray-900">{event.organizer}</p>
-                   <p className="text-xs text-gray-500">{event.location}</p>
+                   <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{event.organizer}</p>
+                   <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{event.location}</p>
                 </div>
               </div>
             </div>
 
-            <div className="relative aspect-video bg-gray-100">
+            <div className={`relative aspect-video ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider">
                  {event.category}
@@ -756,15 +756,15 @@ const App = () => {
               <div className="flex justify-between items-center mb-3">
                 <div className="flex space-x-3">
                   <button onClick={() => handleLikeEvent(event.id)}>
-                    <Heart size={22} className={isLiked ? "fill-red-500 text-red-500" : "text-gray-600"} />
+                    <Heart size={22} className={isLiked ? "fill-red-500 text-red-500" : isDarkMode ? "text-gray-400" : "text-gray-600"} />
                   </button>
-                  <Share2 size={22} className="text-gray-600" />
+                  <Share2 size={22} className={isDarkMode ? "text-gray-400" : "text-gray-600"} />
                 </div>
-                <span className="text-xs text-gray-400">{event.date} • {event.time}</span>
+                <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>{event.date} • {event.time}</span>
               </div>
 
-              <h3 className="font-bold text-gray-900 mb-1 leading-tight">{event.title}</h3>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-3">{event.description}</p>
+              <h3 className={`font-bold mb-1 leading-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{event.title}</h3>
+              <p className={`text-sm mb-4 line-clamp-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{event.description}</p>
 
               {currentUser.role === UserRole.STUDENT && (
                   <button
@@ -851,18 +851,17 @@ const App = () => {
         return (
             <div className="space-y-4">
                {/* Date Picker Header */}
-               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm animate-in fade-in">
+               <div className={`flex items-center justify-between p-4 rounded-xl border shadow-sm animate-in fade-in ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                    <div className="flex items-center space-x-4">
-                       <h2 className="text-lg font-bold text-gray-800">
+                       <h2 className={`text-lg font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                            {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                        </h2>
                    </div>
                    <input 
                        type="date"
-                       // Handle timezone offset for input value
-                       value={currentDate.toLocaleDateString('en-CA')} // YYYY-MM-DD
+                       value={currentDate.toLocaleDateString('en-CA')}
                        onChange={(e) => setCurrentDate(e.target.valueAsDate || new Date())}
-                       className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                       className={`border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'border-gray-300'}`}
                    />
                </div>
 
@@ -873,12 +872,12 @@ const App = () => {
                             className={`p-5 rounded-xl border flex flex-col justify-between transition-all ${
                                 period.statusLabel 
                                     ? `${period.statusStyle} shadow-md transform scale-105` 
-                                    : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-md'
+                                    : isDarkMode ? 'bg-gray-800 border-gray-700 hover:shadow-md' : 'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-md'
                             }`}
                         >
                             <div className="flex justify-between items-start">
                                  <div className={`text-xs font-bold px-2 py-0.5 rounded-full w-fit ${
-                                     period.statusLabel ? 'bg-white/50 text-gray-800' : 'bg-indigo-50 text-indigo-600'
+                                     period.statusLabel ? 'bg-white/50 text-gray-800' : isDarkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
                                 }`}>
                                     {period.startTime}
                                 </div>
@@ -893,10 +892,10 @@ const App = () => {
                             </div>
                             
                             <div className="mt-4">
-                                <h3 className={`font-bold text-lg ${period.statusLabel ? 'text-gray-900' : 'text-gray-800'}`}>
+                                <h3 className={`font-bold text-lg ${period.statusLabel ? 'text-gray-900' : isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                                     {period.displaySubject}
                                 </h3>
-                                <p className="text-xs text-gray-400 mt-1">{period.endTime}</p>
+                                <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>{period.endTime}</p>
                             </div>
                         </div>
                     )) : (
@@ -997,7 +996,7 @@ const App = () => {
       return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-4 px-2">
-                <h1 className="text-2xl font-bold text-gray-900 font-serif italic">Events Feed</h1>
+                <h1 className={`text-2xl font-bold font-serif italic ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Events Feed</h1>
                 {(currentUser.role === UserRole.TEACHER || currentUser.role === UserRole.CLUB_ADMIN) && (
                     <button 
                         onClick={() => setIsEventModalOpen(true)}
@@ -1010,19 +1009,19 @@ const App = () => {
             </div>
 
             {upcomingEvents.length === 0 && (
-                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                    <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500 font-medium">No upcoming events found.</p>
-                    <p className="text-sm text-gray-400">Check back later or create a new event!</p>
+                <div className={`text-center py-12 rounded-xl border border-dashed ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}>
+                    <Calendar size={48} className={`mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+                    <p className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>No upcoming events found.</p>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Check back later or create a new event!</p>
                 </div>
             )}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                 {internalEvents.length > 0 && (
                     <div className="space-y-4">
-                        <div className="flex items-center space-x-2 mb-4 pb-2 border-b border-gray-200">
+                        <div className={`flex items-center space-x-2 mb-4 pb-2 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                             <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
-                            <h2 className="text-lg font-bold text-gray-700">Internal Events</h2>
+                            <h2 className={`text-lg font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Internal Events</h2>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-4">
                             {internalEvents.map(renderEventCard)}
@@ -1032,9 +1031,9 @@ const App = () => {
 
                 {externalEvents.length > 0 && (
                     <div className="space-y-4">
-                        <div className="flex items-center space-x-2 mb-4 pb-2 border-b border-gray-200">
+                        <div className={`flex items-center space-x-2 mb-4 pb-2 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                             <div className="w-2 h-8 bg-purple-500 rounded-full"></div>
-                            <h2 className="text-lg font-bold text-gray-700">External Events</h2>
+                            <h2 className={`text-lg font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>External Events</h2>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-4">
                             {externalEvents.map(renderEventCard)}
@@ -1051,11 +1050,11 @@ const App = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">My Registrations</h1>
+            <h1 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>My Registrations</h1>
             {myRegs.length === 0 ? (
-                <div className="text-center p-12 bg-white rounded-2xl border border-dashed border-gray-300">
-                    <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500">You haven't registered for any events yet.</p>
+                <div className={`text-center p-12 rounded-2xl border border-dashed ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}>
+                    <BookOpen size={48} className={`mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+                    <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>You haven't registered for any events yet.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -1065,17 +1064,17 @@ const App = () => {
                         const odRequest = odRequests.find(od => od.eventId === event.id && od.studentId === currentUser.id);
                         
                         return (
-                            <div key={reg.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div key={reg.id} className={`p-5 rounded-xl shadow-sm border flex flex-col md:flex-row md:items-center justify-between gap-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
                                 <div className="flex items-start space-x-4">
-                                    <img src={event.image} className="w-20 h-20 rounded-lg object-cover bg-gray-200" alt="event" />
+                                    <img src={event.image} className={`w-20 h-20 rounded-lg object-cover ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`} alt="event" />
                                     <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{event.title}</h3>
-                                        <p className="text-sm text-gray-500 mb-1">{event.date} • {event.time}</p>
+                                        <h3 className={`font-bold text-lg ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{event.title}</h3>
+                                        <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{event.date} • {event.time}</p>
                                         <div className="flex items-center space-x-2">
                                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${event.type === 'INTERNAL' ? 'bg-indigo-100 text-indigo-700' : 'bg-purple-100 text-purple-700'}`}>
                                                 {event.type}
                                             </span>
-                                            {reg.collegeName && <span className="text-xs text-gray-400">@ {reg.collegeName}</span>}
+                                            {reg.collegeName && <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>@ {reg.collegeName}</span>}
                                         </div>
                                     </div>
                                 </div>
