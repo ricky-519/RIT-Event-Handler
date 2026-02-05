@@ -6,7 +6,7 @@ import { ChatAssistant } from './components/ChatAssistant';
 import { MOCK_USER, MOCK_TEACHER, MOCK_CLUB_ADMIN, INITIAL_EVENTS, CHANNELS, INITIAL_MESSAGES, DAILY_TIMETABLE, WEEKLY_TIMETABLE, INITIAL_OD_REQUESTS } from './constants';
 import { Event, User, UserRole, ODRequest, Channel, Message, Registration, Period } from './types';
 import { generateSmartEventDescription, analyzeODRequest } from './services/geminiService';
-import { Plus, Search, Send, Hash, MoreVertical, Users, Heart, MessageCircle, Share2, Bookmark, CheckCircle, Bell, X, Award, AlertCircle, BookOpen, Clock, XCircle, ExternalLink, FileText, Upload, Calendar, Edit, Eye, UserCheck, SmilePlus, MessageSquare, ChevronRight, CornerDownRight, Volume2, Mic, Headphones, Brain, Sparkles, QrCode, Keyboard, ChevronLeft, CalendarDays, List } from 'lucide-react';
+import { Plus, Search, Send, Hash, MoreVertical, Users, Heart, MessageCircle, Share2, Bookmark, CheckCircle, Bell, X, Award, AlertCircle, BookOpen, Clock, XCircle, ExternalLink, FileText, Upload, Calendar, Edit, Eye, UserCheck, SmilePlus, MessageSquare, ChevronRight, CornerDownRight, Volume2, Mic, Headphones, Brain, Sparkles, QrCode, Keyboard, ChevronLeft, CalendarDays, List, Moon, Sun } from 'lucide-react';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState<User>(MOCK_USER);
@@ -16,6 +16,7 @@ const App = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [likedEvents, setLikedEvents] = useState<Set<string>>(new Set());
   const [notification, setNotification] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   // UI State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -1377,6 +1378,8 @@ const App = () => {
         currentUser={currentUser} 
         switchUser={switchUser} 
         onProfileClick={() => setIsProfileModalOpen(true)}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
     >
       {notification && (
         <div className="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl z-[60] flex items-center animate-in slide-in-from-top-5 fade-in">
