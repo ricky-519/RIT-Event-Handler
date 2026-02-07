@@ -51,6 +51,7 @@ const App = () => {
   const [newEventType, setNewEventType] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [generatedDescription, setGeneratedDescription] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
+  const [newEventLocation, setNewEventLocation] = useState('');
   
   // Time Selection State (12h format)
   const [newTimeHour, setNewTimeHour] = useState('10');
@@ -248,7 +249,7 @@ const App = () => {
       description: generatedDescription,
       date: newEventDate || new Date().toISOString().split('T')[0], 
       time: formattedTime,
-      location: 'TBA',
+      location: newEventLocation || 'TBA',
       type: newEventType,
       registrationLink: 'https://forms.gle/mock',
       organizer: currentUser.name, // Will capture Club Name or Teacher Name
@@ -261,6 +262,7 @@ const App = () => {
     setNewEventTitle('');
     setGeneratedDescription('');
     setNewEventDate('');
+    setNewEventLocation('');
     setNewEventType('INTERNAL');
     // Reset time defaults
     setNewTimeHour('10');
@@ -1113,6 +1115,19 @@ const App = () => {
     );
   };
 
+  // --- HELPER FUNCTION: Check if event has ended ---
+  const isEventEnded = (event: Event): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset to start of day
+    
+    // Parse event end date (format: YYYY-MM-DD)
+    const eventEndDateStr = event.endDate || event.date;
+    const [year, month, day] = eventEndDateStr.split('-').map(Number);
+    const eventEndDate = new Date(year, month - 1, day);
+    
+    return eventEndDate < today;
+  };
+
   const renderClubDashboard = () => (
       <div className="space-y-8">
           <div className="relative h-48 rounded-2xl bg-gradient-to-r from-purple-800 to-indigo-900 overflow-hidden shadow-lg">
@@ -1169,7 +1184,7 @@ const App = () => {
 
               <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">Your Events</h2>
+                      <h2 className="text-xl font-bold text-gray-900">Upcoming & Ongoing Events</h2>
                       <button 
                           onClick={() => setIsEventModalOpen(true)}
                           className="text-sm text-indigo-600 font-medium hover:text-indigo-800 flex items-center"
@@ -1178,32 +1193,229 @@ const App = () => {
                       </button>
                   </div>
                   <div className="space-y-4">
-                      {events.filter(e => e.organizer === currentUser.name || e.type === 'INTERNAL').slice(0, 3).map(event => (
-                          <div key={event.id} className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                  <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                                      <img src={event.image} className="w-full h-full object-cover" />
+                      {(() => {
+                          const upcomingEvents = events.filter(e => !isEventEnded(e) && (e.organizer === currentUser.name || e.type === 'INTERNAL'));
+                          return upcomingEvents.length > 0 ? (
+                              upcomingEvents.slice(0, 3).map(event => (
+                                  <div key={event.id} className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow">
+                                      <div className="flex items-center space-x-3">
+                                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
+                                              <img src={event.image} className="w-full h-full object-cover" />
+                                          </div>
+                                          <div>
+                                              <h3 className="font-bold text-gray-900">{event.title}</h3>
+                                              <p className="text-xs text-gray-500">{event.date} • {event.time}</p>
+                                          </div>
+                                      </div>
+                                      <div className="flex space-x-2">
+                                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                              <Edit size={16} />
+                                          </button>
+                                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                              <Users size={16} />
+                                          </button>
+                                      </div>
                                   </div>
-                                  <div>
-                                      <h3 className="font-bold text-gray-900">{event.title}</h3>
-                                      <p className="text-xs text-gray-500">{event.date}</p>
-                                  </div>
+                              ))
+                          ) : (
+                              <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200 text-gray-500">
+                                  <Calendar size={32} className="mx-auto mb-2 opacity-50" />
+                                  <p className="text-sm">No upcoming events</p>
                               </div>
-                              <div className="flex space-x-2">
-                                  <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                      <Edit size={16} />
-                                  </button>
-                                  <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                      <Users size={16} />
-                                  </button>
-                              </div>
-                          </div>
-                      ))}
+                          );
+                      })()}
                   </div>
+              </div>
+          </div>
+
+          {/* Events History Section */}
+          <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Events History</h2>
+              <div className="space-y-4">
+                  {(() => {
+                      const endedEvents = events.filter(e => isEventEnded(e) && (e.organizer === currentUser.name || e.type === 'INTERNAL'));
+                      return endedEvents.length > 0 ? (
+                          endedEvents.map(event => (
+                              <div key={event.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center justify-between opacity-75 hover:opacity-100 transition-opacity">
+                                  <div className="flex items-center space-x-3">
+                                      <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                                          <img src={event.image} className="w-full h-full object-cover opacity-60" />
+                                      </div>
+                                      <div>
+                                          <h3 className="font-bold text-gray-700">{event.title}</h3>
+                                          <p className="text-xs text-gray-500">{event.date} • Ended on {event.endDate || event.date}</p>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                      <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-200 rounded">Completed</span>
+                                      <div className="flex space-x-2">
+                                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                              <Eye size={16} />
+                                          </button>
+                                      </div>
+                                  </div>
+                              </div>
+                          ))
+                      ) : (
+                          <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200 text-gray-500">
+                              <Calendar size={32} className="mx-auto mb-2 opacity-50" />
+                              <p className="text-sm">No past events yet</p>
+                          </div>
+                      );
+                  })()}
               </div>
           </div>
       </div>
   );
+
+  const renderCompletedEvents = () => {
+    const completedEvents = events.filter(e => isEventEnded(e));
+    const internalEvents = completedEvents.filter(e => e.type === 'INTERNAL');
+    const externalEvents = completedEvents.filter(e => e.type === 'EXTERNAL');
+
+    const EventCard = ({ event }: { event: Event }) => {
+      const isRegistered = registrations.some(r => r.eventId === event.id);
+      const isLiked = likedEvents.has(event.id);
+      
+      return (
+        <div className={`rounded-2xl shadow-sm border overflow-hidden flex flex-col h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+          <div className="p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 p-0.5">
+                <img src={`https://ui-avatars.com/api/?name=${event.organizer}&background=random`} className="w-full h-full rounded-full object-cover" alt="avatar" />
+              </div>
+              <div>
+                <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{event.organizer}</p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{event.location}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`relative aspect-video ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} opacity-60`}>
+            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/30"></div>
+            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+              {event.category}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-white/90 rounded-full p-3">
+                <CheckCircle size={32} className="text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 flex flex-col flex-1">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex space-x-3">
+                <button onClick={() => handleLikeEvent(event.id)}>
+                  <Heart size={22} className={isLiked ? "fill-red-500 text-red-500" : isDarkMode ? "text-gray-400" : "text-gray-600"} />
+                </button>
+                <Share2 size={22} className={isDarkMode ? "text-gray-400" : "text-gray-600"} />
+              </div>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${isDarkMode ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                Completed
+              </span>
+            </div>
+
+            <h3 className={`font-bold mb-1 leading-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{event.title}</h3>
+            <p className={`text-sm mb-4 line-clamp-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{event.description}</p>
+
+            <div className={`text-xs mb-4 p-2 rounded ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+              <span className="font-semibold">Event Date:</span> {event.date}
+              {event.endDate && event.endDate !== event.date && ` to ${event.endDate}`}
+            </div>
+
+            {currentUser.role === UserRole.STUDENT && (
+              <button
+                disabled={true}
+                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center ${
+                  isRegistered 
+                    ? 'bg-green-50 text-green-600 border border-green-200'
+                    : 'bg-gray-100 text-gray-500 border border-gray-200 cursor-default'
+                }`}
+              >
+                {isRegistered ? (
+                  <><CheckCircle size={16} className="mr-2"/> Attended</>
+                ) : (
+                  <><XCircle size={16} className="mr-2"/> Not Registered</>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="relative h-48 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 overflow-hidden shadow-lg">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute bottom-6 left-6">
+            <h1 className="text-3xl font-bold text-white mb-1">Completed Events</h1>
+            <p className="text-slate-200">Browse events that have already taken place</p>
+          </div>
+        </div>
+
+        {completedEvents.length === 0 ? (
+          <div className="text-center p-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
+            <h2 className="text-xl font-bold text-gray-700 mb-2">No Completed Events Yet</h2>
+            <p className="text-gray-500">Events you've attended will appear here once they're finished.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Internal Events Column */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Calendar size={20} className="text-blue-600" />
+                </div>
+                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Internal Events ({internalEvents.length})
+                </h2>
+              </div>
+              {internalEvents.length === 0 ? (
+                <div className={`text-center p-8 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
+                  <Calendar size={32} className={`mx-auto mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-300'}`} />
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No completed internal events</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {internalEvents.map(event => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* External Events Column */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <ExternalLink size={20} className="text-purple-600" />
+                </div>
+                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  External Events ({externalEvents.length})
+                </h2>
+              </div>
+              {externalEvents.length === 0 ? (
+                <div className={`text-center p-8 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
+                  <ExternalLink size={32} className={`mx-auto mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-300'}`} />
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No completed external events</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {externalEvents.map(event => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderAttendance = () => {
     if (currentUser.role === UserRole.TEACHER) {
@@ -1390,6 +1602,7 @@ const App = () => {
       )}
 
       {activeTab === 'events' && renderEventsFeed()}
+      {activeTab === 'completed-events' && renderCompletedEvents()}
       {activeTab === 'schedule' && renderTimetable()}
       {activeTab === 'registrations' && renderMyRegistrations()}
       {activeTab === 'attendance' && renderAttendance()}
@@ -1399,46 +1612,46 @@ const App = () => {
       {/* Create Event Modal */}
       {isEventModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 animate-in zoom-in duration-200">
-            <h2 className="text-xl font-bold mb-4">Post New Event</h2>
+          <div className={`rounded-xl shadow-xl max-w-lg w-full p-6 animate-in zoom-in duration-200 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Post New Event</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Event Title</label>
                 <input 
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'}`}
                   placeholder="e.g. AI Symposium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Date</label>
                     <input 
                       type="date"
                       value={newEventDate}
                       onChange={(e) => setNewEventDate(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Time</label>
                     <div className="flex space-x-2">
                         <select 
                             value={newTimeHour} 
                             onChange={(e) => setNewTimeHour(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                         >
                             {Array.from({length: 12}, (_, i) => i + 1).map(h => (
                                 <option key={h} value={h.toString().padStart(2, '0')}>{h.toString().padStart(2, '0')}</option>
                             ))}
                         </select>
-                        <span className="self-center font-bold text-gray-400">:</span>
+                        <span className={`self-center font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>:</span>
                         <select 
                             value={newTimeMinute} 
                             onChange={(e) => setNewTimeMinute(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                         >
                             {Array.from({length: 12}, (_, i) => (i * 5).toString().padStart(2, '0')).map(m => (
                                  <option key={m} value={m}>{m}</option>
@@ -1447,7 +1660,7 @@ const App = () => {
                         <select 
                             value={newTimeAmPm} 
                             onChange={(e) => setNewTimeAmPm(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                         >
                             <option value="AM">AM</option>
                             <option value="PM">PM</option>
@@ -1457,11 +1670,21 @@ const App = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Auditorium / Location</label>
+                <input 
+                  value={newEventLocation}
+                  onChange={(e) => setNewEventLocation(e.target.value)}
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'}`}
+                  placeholder="e.g. Main Auditorium, Lab Complex B"
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Category</label>
                 <select 
                   value={newEventCategory}
                   onChange={(e) => setNewEventCategory(e.target.value as any)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                 >
                   <option value="CLUB">Club Activity</option>
                   <option value="TECHNICAL">Technical</option>
@@ -1471,11 +1694,11 @@ const App = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
+                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Event Type</label>
                 <select 
                   value={newEventType}
                   onChange={(e) => setNewEventType(e.target.value as 'INTERNAL' | 'EXTERNAL')}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                 >
                   <option value="INTERNAL">Internal</option>
                   <option value="EXTERNAL">External</option>
@@ -1483,11 +1706,11 @@ const App = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description (AI Assisted)</label>
+                <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Description (AI Assisted)</label>
                 <textarea 
                   value={generatedDescription}
                   onChange={(e) => setGeneratedDescription(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  className={`w-full border rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-indigo-500 outline-none resize-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'}`}
                   placeholder="Describe the event..."
                 />
                 <button 
@@ -1500,7 +1723,7 @@ const App = () => {
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
-              <button onClick={() => setIsEventModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
+              <button onClick={() => setIsEventModalOpen(false)} className={`px-4 py-2 rounded-lg ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}>Cancel</button>
               <button onClick={handleCreateEvent} disabled={!newEventTitle || !generatedDescription || !newEventDate} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">Post Event</button>
             </div>
           </div>
@@ -1510,35 +1733,35 @@ const App = () => {
       {/* External Registration Modal */}
       {isExternalRegModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 animate-in zoom-in duration-200">
-                <h2 className="text-xl font-bold mb-4">External Event Verification</h2>
+            <div className={`rounded-xl shadow-xl max-w-lg w-full p-6 animate-in zoom-in duration-200 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>External Event Verification</h2>
                 <div className="space-y-4">
-                    <p className="text-sm text-gray-500">To register for <span className="font-bold">{selectedEventForExternal?.title}</span>, please provide details for OD processing.</p>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>To register for <span className="font-bold">{selectedEventForExternal?.title}</span>, please provide details for OD processing.</p>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">College/Venue Name</label>
+                        <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>College/Venue Name</label>
                         <input 
                             value={extCollegeName}
                             onChange={(e) => setExtCollegeName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'}`}
                             placeholder="e.g. Anna University"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
+                        <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Event Date</label>
                         <input 
                             type="date"
                             value={extEventDate}
                             onChange={(e) => setExtEventDate(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Proof of Event (Brochure/Invite)</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:border-indigo-500 hover:text-indigo-500 transition-colors cursor-pointer" onClick={() => setExtProofFile('simulated_file.pdf')}>
+                        <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Proof of Event (Brochure/Invite)</label>
+                        <div className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center transition-colors cursor-pointer ${isDarkMode ? 'border-gray-600 text-gray-400 hover:border-indigo-500 hover:text-indigo-500' : 'border-gray-300 text-gray-400 hover:border-indigo-500 hover:text-indigo-500'}`} onClick={() => setExtProofFile('simulated_file.pdf')}>
                             {extProofFile ? (
                                 <>
                                     <FileText size={32} className="text-indigo-600 mb-2" />
-                                    <span className="text-sm text-gray-900 font-medium">proof_document.pdf</span>
+                                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>proof_document.pdf</span>
                                 </>
                             ) : (
                                 <>
@@ -1550,7 +1773,7 @@ const App = () => {
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end space-x-3">
-                    <button onClick={() => setIsExternalRegModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
+                    <button onClick={() => setIsExternalRegModalOpen(false)} className={`px-4 py-2 rounded-lg ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}>Cancel</button>
                     <button 
                         onClick={submitExternalRegistration} 
                         disabled={!extCollegeName || !extProofFile}
@@ -1566,28 +1789,28 @@ const App = () => {
       {/* Organizer Verify Entry Modal */}
       {isVerifyEntryModalOpen && scannedODRequest && (
          <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 backdrop-blur-md">
-             <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-in zoom-in">
-                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+             <div className={`rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-in zoom-in ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDarkMode ? 'bg-green-900/30' : 'bg-green-100'}`}>
                      <CheckCircle size={32} className="text-green-600" />
                  </div>
-                 <h2 className="text-xl font-bold text-gray-900 mb-1">Verify Entry?</h2>
-                 <p className="text-gray-500 text-sm mb-6">Mark student present for the event.</p>
+                 <h2 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Verify Entry?</h2>
+                 <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Mark student present for the event.</p>
                  
-                 <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
+                 <div className={`rounded-xl p-4 mb-6 text-left ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                      <div className="mb-2">
-                         <span className="text-xs text-gray-400 uppercase font-bold">Student</span>
-                         <p className="font-semibold text-gray-900">{scannedODRequest.studentName}</p>
+                         <span className={`text-xs uppercase font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Student</span>
+                         <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{scannedODRequest.studentName}</p>
                      </div>
                      <div>
-                         <span className="text-xs text-gray-400 uppercase font-bold">Event</span>
-                         <p className="font-semibold text-gray-900">{scannedODRequest.eventTitle}</p>
+                         <span className={`text-xs uppercase font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Event</span>
+                         <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{scannedODRequest.eventTitle}</p>
                      </div>
                  </div>
 
                  <div className="flex space-x-3">
                      <button 
                         onClick={() => { setIsVerifyEntryModalOpen(false); setScannedODRequest(null); }}
-                        className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
+                        className={`flex-1 py-3 font-bold rounded-xl ${isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                      >
                          Cancel
                      </button>

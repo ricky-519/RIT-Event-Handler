@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, QrCode, MessageSquare, LogOut, Ticket, Users, Clock, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, QrCode, MessageSquare, LogOut, Ticket, Users, Clock, Moon, Sun, Calendar } from 'lucide-react';
 import { User, UserRole } from '../types';
 
 interface LayoutProps {
@@ -16,6 +16,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, currentUser, switchUser, onProfileClick, isDarkMode, toggleDarkMode }) => {
   const navItems = [
     { id: 'events', label: 'Events Feed', icon: <LayoutDashboard size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
+    { id: 'completed-events', label: 'Completed Events', icon: <Calendar size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
     { id: 'schedule', label: 'Schedule', icon: <Clock size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER] },
     { id: 'registrations', label: 'My Registrations', icon: <Ticket size={20} />, roles: [UserRole.STUDENT] },
     { id: 'attendance', label: 'Attendance & OD', icon: <QrCode size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER] },

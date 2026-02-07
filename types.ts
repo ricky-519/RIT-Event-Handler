@@ -36,6 +36,8 @@ export interface Event {
   organizer: string;
   likes: number;
   isStudentPost?: boolean;
+  endDate?: string; // Optional: When the event ends (same format as date YYYY-MM-DD)
+  endTime?: string; // Optional: When the event ends (HH:MM format in 24h)
 }
 
 export interface Registration {
