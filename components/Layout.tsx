@@ -11,9 +11,10 @@ interface LayoutProps {
   onProfileClick: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  onLogout: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, currentUser, switchUser, onProfileClick, isDarkMode, toggleDarkMode }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, currentUser, switchUser, onProfileClick, isDarkMode, toggleDarkMode, onLogout }) => {
   const navItems = [
     { id: 'events', label: 'Events Feed', icon: <LayoutDashboard size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
     { id: 'completed-events', label: 'Completed Events', icon: <Calendar size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
@@ -80,7 +81,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </div>
           <button 
             onClick={switchUser}
-            className={`w-full flex items-center justify-center space-x-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
+            className={`w-full flex items-center justify-center space-x-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors mb-2 ${
               isDarkMode
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -88,6 +89,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           >
             <LogOut size={16} />
             <span>Switch Role</span>
+          </button>
+          <button 
+            onClick={onLogout}
+            className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isDarkMode
+                ? 'bg-red-900 text-red-200 hover:bg-red-800'
+                : 'bg-red-50 text-red-600 hover:bg-red-100'
+            }`}
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -124,6 +136,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
              <button onClick={switchUser} className="text-sm text-indigo-600 font-medium">Switch</button>
+             <button onClick={onLogout} className="text-sm text-red-600 font-medium">Logout</button>
            </div>
         </header>
         <div className={`p-4 md:p-8 pb-24 md:pb-8 max-w-[1600px] mx-auto ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>

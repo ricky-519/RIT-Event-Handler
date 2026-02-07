@@ -83,6 +83,19 @@ const App = () => {
     setIsExternalRegModalOpen(false);
   };
 
+  const handleLogout = () => {
+    // Clear user session and reset to login state
+    setCurrentUser({} as User);
+    setActiveTab('events');
+    setIsProfileModalOpen(false);
+    setIsEventModalOpen(false);
+    setIsExternalRegModalOpen(false);
+    showNotification("Logged out successfully");
+    
+    // In a real app, you would redirect to login page or clear authentication tokens
+    // For now, we'll just show a notification and reset the user state
+  };
+
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
@@ -1593,6 +1606,7 @@ const App = () => {
         onProfileClick={() => setIsProfileModalOpen(true)}
         isDarkMode={isDarkMode}
         toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onLogout={handleLogout}
     >
       {notification && (
         <div className="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl z-[60] flex items-center animate-in slide-in-from-top-5 fade-in">
