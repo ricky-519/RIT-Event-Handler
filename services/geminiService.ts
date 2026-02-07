@@ -1,21 +1,27 @@
-
-import { GoogleGenAI } from "@google/genai";
 import { Event } from "../types";
 
 const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
 
-let ai: GoogleGenAI | null = null;
+let ai: any = null;
+let aiInitialized = false;
 
-const initializeAI = () => {
-  if (apiKey && !ai) {
-    try {
-      ai = new GoogleGenAI({ apiKey });
-    } catch (error) {
-      console.warn("Failed to initialize Gemini AI:", error);
-      ai = null;
-    }
+const initializeAI = async () => {
+  if (aiInitialized) return ai;
+  aiInitialized = true;
+  
+  if (!apiKey) {
+    return null;
   }
-  return ai;
+
+  try {
+    const { GoogleGenAI } = await import("@google/genai");
+    ai = new GoogleGenAI({ apiKey });
+    return ai;
+  } catch (error) {
+    console.warn("Failed to initialize Gemini AI:", error);
+    ai = null;
+    return null;
+  }
 };
 
 const isApiKeyAvailable = () => {
@@ -26,7 +32,7 @@ export const getCampusAIResponse = async (
   userQuery: string,
   events: Event[]
 ): Promise<string> => {
-  const aiClient = initializeAI();
+  const aiClient = await initializeAI();
   if (!aiClient) {
     return "Campus AI is currently offline. Please check back later.";
   }
@@ -62,7 +68,7 @@ export const getCampusAIResponse = async (
 };
 
 export const generateSmartEventDescription = async (title: string, category: string): Promise<string> => {
-  const aiClient = initializeAI();
+  const aiClient = await initializeAI();
   if (!aiClient) {
     return `Join us for this amazing ${category} event: ${title}!`;
   }
@@ -87,7 +93,7 @@ export const analyzeODRequest = async (
   attendance: number,
   eventTitle: string
 ): Promise<string> => {
-  const aiClient = initializeAI();
+  const aiClient = await initializeAI();
   if (!aiClient) {
     if (attendance >= 75) {
       return "Recommendation: Approval recommended (Good attendance record).";
