@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backend Connection</title>
+</head>
+<body>
+    <h1>Testing Backend Connection</h1>
+    <button onclick="testBackend()">Test Backend</button>
+    <button onclick="testRegister()">Test Register</button>
+    <div id="result"></div>
+
+    <script>
+        async function testBackend() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/health');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 'Backend OK: ' + JSON.stringify(data);
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Backend Error: ' + error.message;
+            }
+        }
+
+        async function testRegister() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: 'test@example.com',
+                        password: 'password123',
+                        role: 'STUDENT',
+                        department: 'Computer Science',
+                        registrationNumber: '21BCS001',
+                        phone: '9876543210'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 'Register OK: ' + JSON.stringify(data);
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Register Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

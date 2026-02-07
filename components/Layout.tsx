@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, QrCode, MessageSquare, LogOut, Ticket, Users, Clock, Moon, Sun, Calendar } from 'lucide-react';
+import { LayoutDashboard, QrCode, LogOut, Ticket, Users, Clock, Moon, Sun, Calendar } from 'lucide-react';
 import { User, UserRole } from '../types';
 
 interface LayoutProps {
@@ -7,22 +7,20 @@ interface LayoutProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   currentUser: User;
-  switchUser: () => void;
   onProfileClick: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   onLogout: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, currentUser, switchUser, onProfileClick, isDarkMode, toggleDarkMode, onLogout }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, currentUser, onProfileClick, isDarkMode, toggleDarkMode, onLogout }) => {
   const navItems = [
     { id: 'events', label: 'Events Feed', icon: <LayoutDashboard size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
     { id: 'completed-events', label: 'Completed Events', icon: <Calendar size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
     { id: 'schedule', label: 'Schedule', icon: <Clock size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER] },
     { id: 'registrations', label: 'My Registrations', icon: <Ticket size={20} />, roles: [UserRole.STUDENT] },
-    { id: 'attendance', label: 'Attendance & OD', icon: <QrCode size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER] },
+    { id: 'attendance', label: currentUser.role === UserRole.TEACHER ? 'OD Approvals' : 'Attendance & OD', icon: <QrCode size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER] },
     { id: 'club-dashboard', label: 'Club Dashboard', icon: <Users size={20} />, roles: [UserRole.CLUB_ADMIN] },
-    { id: 'forum', label: 'Community Forum', icon: <MessageSquare size={20} />, roles: [UserRole.STUDENT, UserRole.TEACHER, UserRole.CLUB_ADMIN] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentUser.role));
@@ -80,17 +78,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             </div>
           </div>
           <button 
-            onClick={switchUser}
-            className={`w-full flex items-center justify-center space-x-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors mb-2 ${
-              isDarkMode
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <LogOut size={16} />
-            <span>Switch Role</span>
-          </button>
-          <button 
             onClick={onLogout}
             className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               isDarkMode
@@ -135,7 +122,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
              <button onClick={toggleDarkMode} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}>
                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
              </button>
-             <button onClick={switchUser} className="text-sm text-indigo-600 font-medium">Switch</button>
              <button onClick={onLogout} className="text-sm text-red-600 font-medium">Logout</button>
            </div>
         </header>

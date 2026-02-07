@@ -12,6 +12,14 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Check if registration number already exists (only if provided)
+    if (registrationNumber) {
+      const existingRegNumber = await User.findOne({ registrationNumber });
+      if (existingRegNumber) {
+        return res.status(400).json({ message: 'Registration number already exists' });
+      }
+    }
+
     // Create new user
     const user = new User({
       name,
@@ -19,7 +27,7 @@ export const register = async (req, res) => {
       password,
       role: role || 'STUDENT',
       department,
-      registrationNumber,
+      registrationNumber: registrationNumber || undefined, // Only include if provided
       phone,
     });
 
@@ -37,9 +45,11 @@ export const register = async (req, res) => {
         email: user.email,
         role: user.role,
         department: user.department,
+        registrationNumber: user.registrationNumber,
       },
     });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ message: error.message });
   }
 };
