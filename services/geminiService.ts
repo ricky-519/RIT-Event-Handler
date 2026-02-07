@@ -2,12 +2,25 @@
 import { GoogleGenAI } from "@google/genai";
 import { Event } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+const isApiKeyAvailable = () => {
+  if (!apiKey) {
+    console.warn("Gemini API key not configured. Using fallback responses.");
+    return false;
+  }
+  return true;
+};
 
 export const getCampusAIResponse = async (
   userQuery: string,
   events: Event[]
 ): Promise<string> => {
+  if (!isApiKeyAvailable() || !ai) {
+    return "Campus AI is currently offline. Please check back later.";
+  }
+
   try {
     const eventContext = events.map(e => 
       `- ${e.title} (${e.date} at ${e.time}): ${e.description}. Location: ${e.location}. Category: ${e.category}`
@@ -39,6 +52,10 @@ export const getCampusAIResponse = async (
 };
 
 export const generateSmartEventDescription = async (title: string, category: string): Promise<string> => {
+  if (!isApiKeyAvailable() || !ai) {
+    return `Join us for this amazing ${category} event: ${title}!`;
+  }
+
   try {
     const prompt = `Write a catchy, engaging, and professional 2-sentence description for a university event titled "${title}" in the category "${category}".`;
     
@@ -59,6 +76,16 @@ export const analyzeODRequest = async (
   attendance: number,
   eventTitle: string
 ): Promise<string> => {
+  if (!isApiKeyAvailable() || !ai) {
+    if (attendance >= 75) {
+      return "Recommendation: Approval recommended (Good attendance record).";
+    } else if (attendance >= 65) {
+      return "Recommendation: Proceed with caution (Borderline attendance).";
+    } else {
+      return "Recommendation: Rejection recommended (Low attendance).";
+    }
+  }
+
   try {
     const prompt = `
     Role: Academic Advisor AI.
